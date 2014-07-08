@@ -2,6 +2,7 @@ import itertools
 import umysql
 import re
 
+#TODO replace key with __hash__
 class Query(object):
 
     def __init__(self, key, sql):

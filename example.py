@@ -13,3 +13,15 @@ for row in results:
     for x,y in row:
         print x,y
 
+class X(object):    
+    bind_where = []
+    def bind(self, bind, params):
+        bind = "bind_%s" % bind
+        attr = getattr(self, bind)
+        for i in params:
+            attr.append(i)
+
+    
+x = X()
+
+x.bind("where", ["a", "b"])
