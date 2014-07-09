@@ -36,3 +36,9 @@ x = X()
 x.y(1, 2, 3)
 
 
+select = Select(Blog())
+select.join(BlogTag()).and("tag_id")
+select.join(BlogDateTime())
+select.limit(20)
+select.page(2)
+select.order(BlogDateTime().published, "DESC")
