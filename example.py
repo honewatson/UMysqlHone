@@ -25,3 +25,13 @@ class X(object):
 x = X()
 
 x.bind("where", ["a", "b"])
+
+class X(object):
+     y = ["boo", "moo"]
+     def y(self):
+        print "Boo"
+
+x = X()
+
+print x.y
+x.y()
