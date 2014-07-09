@@ -59,10 +59,13 @@ class SelectQuery(Query):
         self.tnum = 1
         self.ctnum = "t1"
 
-    def Join(self, on):
-        j = self.factory.join(on)
+    def Join(self, on, join="JOIN"):
+        j = self.factory.join(on, join)
         self.join.append(j)
         return j
+
+    def LeftJoin(self, on):
+        return self.Join(on, "LEFT JOIN")
 
     def build(self):
         return "%s%s%s%s" % (
@@ -99,9 +102,11 @@ class SelectQuery(Query):
 
 class JoinQuery(Query):
 
-    def __init__(self, on, _and = []):
+
+    def __init__(self, on, join):
         self.on = on
-        self._and = _and
+        self._and = []
+        self.join = join
 
     def And(self, arg):
 
@@ -112,9 +117,11 @@ class JoinQuery(Query):
     def build(self, table, pkey, tnum):
         table_id = "%s.%s" % (table, pkey)
         first = self.on
-        join = "\nJOIN %s %s \n\tON %s = %s.%s" % (first.table, self._add_tnum(tnum), table_id, tnum, first.primary)
+        join = "\n%s %s %s \n\tON %s = %s.%s" % (self.join, first.table, self._add_tnum(tnum), table_id, tnum, first.primary)
         _and = ["\n\tAND %s.%s" % (tnum, i) for i in self._and]
         return "%s%s" % (join, "".join(_and))
+
+
 
 class OrderQuery(object):
     pass
@@ -128,19 +135,23 @@ class Select(object):
         self.join = join
         self.order = order
 
+
     def __call__(self, name):
         return self.select(name, self)
 
 
-select = Select(SelectQuery, JoinQuery, OrderQuery)
+s = Select(SelectQuery, JoinQuery, OrderQuery)
 
-n = select(Blog())
+select = s(Blog())
 
-n.Join(BlogDateTime()).And("published > @start_date")
-n.Join(BlogDateTime()).And("published < @end_date")
-n.Join(BlogTag()).And("tag = @tag")
+select.Join(BlogDateTime()).And("published > @start_date")
+select.Join(BlogDateTime()).And("published < @end_date")
+select.LeftJoin(BlogTag()).And("tag = @tag")
 
-print n.build()
+print select.join[0].on.table
+print select.join[1].on.table
+print select.join[2].on.table
+print select.build()
 #
 # print n.join
 # print n.join[0]._and
