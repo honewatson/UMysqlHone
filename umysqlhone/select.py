@@ -323,7 +323,7 @@ class Select(SelectInterface, SelectInterface):
 
         Sets the number of rows per page.
 
-        @type int paging The number of rows to page at.
+        @type paging: int The number of rows to page at.
 
         @rtype:  self
 
@@ -386,7 +386,7 @@ class Select(SelectInterface, SelectInterface):
 
         Makes the select FOR UPDATE (or not).
 
-        @type bool enable Whether or not the SELECT is FOR UPDATE (default
+        @type enable: bool Whether or not the SELECT is FOR UPDATE (default
         true).
 
         @rtype:  self
@@ -407,10 +407,10 @@ class Select(SelectInterface, SelectInterface):
 
         Makes the select DISTINCT (or not).
 
-        @type bool enable Whether or not the SELECT is DISTINCT (default
+        @type enable:bool Whether or not the SELECT is DISTINCT (default
         true).
 
-        @rtype:  self
+        @rtype: self
 
 
         """
@@ -430,7 +430,7 @@ class Select(SelectInterface, SelectInterface):
         Multiple calls to cols() will append to the list of columns, not
         overwrite the previous columns.
 
-        @type list|dict cols The column(s) to add to the query. The elements can be
+        @type cols: list|dict  The column(s) to add to the query. The elements can be
         any mix of these: `list|dict("col", "col AS alias", "col" => "alias")`
 
         @rtype:  self
@@ -438,7 +438,7 @@ class Select(SelectInterface, SelectInterface):
 
         """
         for k,v in cols.iter():
-            self._add_col(key, val)
+            self._add_col(k, v)
 
         return self
 
@@ -451,10 +451,10 @@ class Select(SelectInterface, SelectInterface):
 
         Adds a column and alias to the columsn to be selected.
 
-        @type mixed key If an integer, ignored. Otherwise, the column to be
+        @type key: mixed If an integer, ignored. Otherwise, the column to be
         added.
 
-        @type mixed val If key was an integer, the column to be added;
+        @type val: mixed If key was an integer, the column to be added;
         otherwise, the column alias.
 
 
@@ -474,7 +474,7 @@ class Select(SelectInterface, SelectInterface):
     
         Adds a FROM element to the query; quotes the table name automatically.
     
-        @type string spec The table specification; "foo" or "foo AS bar".
+        @type spec: string The table specification; "foo" or "foo AS bar".
     
         @rtype:  self
     
@@ -491,7 +491,7 @@ class Select(SelectInterface, SelectInterface):
         Adds a raw unquoted FROM element to the query; useful for adding FROM
         elements that are functions.
     
-        @type string spec The table specification, e.g. "function_name()".
+        @type spec: string The table specification, e.g. "function_name()".
     
         @rtype:  self
     
@@ -507,12 +507,12 @@ class Select(SelectInterface, SelectInterface):
     
         Adds an aliased sub-select to the query.
     
-        @type string|Select spec If a Select object, use as the sub-select;
+        @type spec: string|Select If a Select object, use as the sub-select;
         if a string, the sub-select string.
     
-        @type string name The alias name for the sub-select.
+        @type name: string The alias name for the sub-select.
     
-        @rtype:  self
+        @rtype: self
     
     
         """
@@ -532,15 +532,15 @@ class Select(SelectInterface, SelectInterface):
     
         Adds a JOIN table and columns to the query.
     
-        @type string join The join type: inner, left, natural, etc.
+        @type join: string The join type: inner, left, natural, etc.
     
-        @type string spec The table specification; "foo" or "foo AS bar".
+        @type spec: string The table specification; "foo" or "foo AS bar".
     
-        @type string cond Join on this condition.
+        @type cond: string Join on this condition.
     
         @rtype:  self
     
-        @throws Exception
+        @raises Exception
     
     
         """
@@ -566,7 +566,7 @@ class Select(SelectInterface, SelectInterface):
         Fixes a JOIN condition to quote names in the condition and prefix it
         with a condition type ('ON' is the default and 'USING' is recognized).
     
-        @type string cond Join on this condition.
+        @type cond: string Join on this condition.
     
         @rtype:  string
     
@@ -594,13 +594,13 @@ class Select(SelectInterface, SelectInterface):
     
         Adds a INNER JOIN table and columns to the query.
     
-        @type string spec The table specification; "foo" or "foo AS bar".
+        @type spec: string The table specification; "foo" or "foo AS bar".
     
-        @type string cond Join on this condition.
+        @type cond: string Join on this condition.
     
-        @rtype:  self
+        @rtype: self
     
-        @throws Exception
+        @raises Exception
     
     
         """
@@ -614,13 +614,13 @@ class Select(SelectInterface, SelectInterface):
     
         Adds a LEFT JOIN table and columns to the query.
     
-        @type string spec The table specification; "foo" or "foo AS bar".
+        @type spec: string The table specification; "foo" or "foo AS bar".
     
-        @type string cond Join on this condition.
+        @type cond: string Join on this condition.
     
-        @rtype:  self
+        @rtype: self
     
-        @throws Exception
+        @raises Exception
     
     
         """
@@ -634,19 +634,19 @@ class Select(SelectInterface, SelectInterface):
     
         Adds a JOIN to an aliased subselect and columns to the query.
     
-        @type string join The join type: inner, left, natural, etc.
+        @type join: string The join type: inner, left, natural, etc.
     
-        @type string|Select spec If a Select
+        @type spec: string|Select If a Select
         object, use as the sub-select; if a string, the sub-select
         command string.
     
-        @type string name The alias name for the sub-select.
+        @type name: string The alias name for the sub-select.
     
-        @type string cond Join on this condition.
+        @type cond: string Join on this condition.
     
-        @rtype:  self
+        @rtype: self
     
-        @throws Exception
+        @raises Exception
     
     
         """
@@ -680,9 +680,9 @@ class Select(SelectInterface, SelectInterface):
     
         Adds grouping to the query.
     
-        @type list|dict spec The column(s) to group by.
+        @type spec: list|dict The column(s) to group by.
     
-        @rtype:  self
+        @rtype: self
     
     
         """
@@ -701,9 +701,9 @@ class Select(SelectInterface, SelectInterface):
         ?-placeholders, additional arguments to the method will be bound to
         those placeholders sequentially.
     
-        @type string cond The HAVING condition.
+        @type cond: string The HAVING condition.
     
-        @rtype:  self
+        @rtype: self
     
     
         """
@@ -720,9 +720,9 @@ class Select(SelectInterface, SelectInterface):
         ?-placeholders, additional arguments to the method will be bound to
         those placeholders sequentially.
     
-        @type string cond The HAVING condition.
+        @type cond: string The HAVING condition.
     
-        @rtype:  self
+        @rtype: self
     
         @see having()
     
@@ -739,9 +739,9 @@ class Select(SelectInterface, SelectInterface):
     
         Sets the limit and count by page number.
     
-        @type int page Limit results to this page number.
+        @type page: int Limit results to this page number.
     
-        @rtype:  self
+        @rtype: self
     
     
         """
@@ -853,7 +853,7 @@ class Select(SelectInterface, SelectInterface):
     
         @rtype:  string
     
-        @throws Exception when there are no columns in the SELECT.
+        @raises Exception when there are no columns in the SELECT.
     
     
         """
@@ -942,8 +942,7 @@ class Select(SelectInterface, SelectInterface):
         ?-placeholders, additional arguments to the method will be bound to
         those placeholders sequentially.
     
-        @type string cond The WHERE condition.
-        @type mixed ...bind arguments to bind to placeholders
+        @type *args: string The WHERE condition. ...bind arguments to bind to placeholders
     
         @rtype:  self
     
@@ -962,8 +961,8 @@ class Select(SelectInterface, SelectInterface):
         ?-placeholders, additional arguments to the method will be bound to
         those placeholders sequentially.
     
-        @type string cond The WHERE condition.
-        @type mixed ...bind arguments to bind to placeholders
+        @type *args: string The WHERE condition. ...bind arguments to bind to placeholders
+
     
         @rtype:  self
     
@@ -982,7 +981,7 @@ class Select(SelectInterface, SelectInterface):
     
         Sets a limit count on the query.
     
-        @type int limit The number of rows to select.
+        @type limit: int The number of rows to select.
     
         @rtype:  self
     
@@ -999,7 +998,7 @@ class Select(SelectInterface, SelectInterface):
     
         Sets a limit offset on the query.
     
-        @type int offset Start returning after this many rows.
+        @type offset: int Start returning after this many rows.
     
         @rtype:  self
     
@@ -1016,7 +1015,7 @@ class Select(SelectInterface, SelectInterface):
     
         Adds a column order to the query.
     
-        @type list|dict spec The columns and direction to order by.
+        @type spec: list|dict The columns and direction to order by.
     
         @rtype:  self
     
@@ -1024,5 +1023,3 @@ class Select(SelectInterface, SelectInterface):
         """
     
         return self._add_order_by(spec)
-    
-

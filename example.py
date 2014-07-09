@@ -27,11 +27,12 @@ x = X()
 x.bind("where", ["a", "b"])
 
 class X(object):
-     y = ["boo", "moo"]
-     def y(self):
-        print "Boo"
+     def y(self, *args):
+        return args
 
 x = X()
 
-print x.y
-x.y()
+
+x.y(1, 2, 3)
+
+
