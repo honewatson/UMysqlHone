@@ -52,7 +52,7 @@ def print_ob(ob):
     for i in results:
         print "\n\n"
         print i
-        at = getattr(p1, i)
+        at = getattr(ob, i, "")
         if callable(at):
             try:
                 print at()
@@ -74,7 +74,15 @@ def get_all_fields(ob):
     fields = [ field(k,v) for k,v in ob._fields.iteritems()]
     return fields
 
-print get_all_fields(p1)
+#print get_all_fields(p1)
+
+#print_ob()
+
+print_ob(p1.name)
+
+#print getattr(p1.name, "__class__")
+
+#print p1.name.__class__.__name__
 
 class Tables(object):
 
