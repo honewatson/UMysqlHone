@@ -3,6 +3,8 @@ import re
 from schematics.models import Model
 from schematics.types import StringType, IntType, DateTimeType
 
+
+
 class DateTimeModel(Model):
     published = DateTimeType()
     created_at = DateTimeType()
