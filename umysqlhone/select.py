@@ -2,10 +2,6 @@ __author__ = 'honhon'
 
 class Query(object):
 
-    def __init__(self):
-        self._groupby = []
-
-
     def _add_tnum(self, num):
         return "as %s" % num
 
@@ -26,7 +22,7 @@ class SelectQuery(Query):
     _from = None
     join = []
 
-    def __init__(self, _from, factory,  **kwargs):
+    def __init__(self, _from, factory, ctnum):
         """
 
         @type _from: schematics.models.Model
@@ -36,14 +32,16 @@ class SelectQuery(Query):
         self._from = _from
         self.factory = factory
         self.tnum = 1
+        self.ctnum = ctnum
 
-
-        super(SelectQuery, self).__init__(**kwargs)
 
 
     def Join(self, on, join="JOIN"):
         j = self.factory.join(on, join)
+        j.ctnum = ""
+        j._groupby = []
         self.join.append(j)
+
         return j
 
     def LeftJoin(self, on):
@@ -73,8 +71,8 @@ class SelectQuery(Query):
     def _get_tnum(self):
         tnum = self.tnum
         self.tnum += 1
-        self.ctnum = "t%s" % str(tnum)
-        return self.ctnum
+        ctnum = "t%s" % str(tnum)
+        return ctnum
 
     def buildFrom(self):
         return "FROM %s %s" % (self._from.table, self._add_tnum(self._get_tnum()))
@@ -100,12 +98,11 @@ class SelectQuery(Query):
 class JoinQuery(Query):
 
 
-    def __init__(self, on, join, **kwargs):
+    def __init__(self, on, join):
         self.on = on
         self._and = []
         self.join = join
 
-        super(JoinQuery, self).__init__(**kwargs)
 
     def And(self, arg):
 
@@ -136,6 +133,8 @@ class _Select(object):
 
 
     def __call__(self, name):
-        return self.select(name, self)
+        s = self.select(name, self, "t1")
+        s._groupby = []
+        return s
 
 Select = _Select(SelectQuery, JoinQuery)
