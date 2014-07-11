@@ -24,6 +24,7 @@ class TagIndex(InvertedIndex):
 
 
 class Product(TagList):
+    table = "product"
     primary = "product_id"
     models = ['Product', 'TagList']
     product_id = IntType()
@@ -152,8 +153,10 @@ def Query(ob):
 
 select = Query(Tag)
 select.Join(TagIndex)
-select.Join(TagIndex).And("tag_id = @tag_id")
+select.Join(Product).And("tag_id = @tag_id")
 select.Where("tag_id = @tag_id").And("tag_name = @tag_name")
+
+print select
 
 select = Query(Tag).Join(TagIndex).Join(TagIndex).And("tag_id = @tag_id").Where("tag_id = @tag_id").And("tag_name = @tag_name")
 print select.where_join
