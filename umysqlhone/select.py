@@ -1,140 +1,163 @@
-__author__ = 'honhon'
+__author__ = 'hone'
 
-class Query(object):
+from schematics.models import Model
+from schematics.types import StringType, DateTimeType, IntType, URLType
+from schematics.types.compound import ListType, ModelType
 
-    def _add_tnum(self, num):
-        return "as %s" % num
+class Tag(Model):
+    primary = "tag_id"
+    table = "tag"
+    tag_id = IntType()
+    tag_name = StringType()
+    slug = StringType()
 
+class TagList(Model):
+    tags = ListType(ModelType(Tag))
 
-    def GroupBy(self, _type):
-        self._groupby.append(_type)
-        return self
-
-    def _collect_groupbys(self):
-        l =  [ "%s.%s" % (self.ctnum, gb) for gb in self._groupby ]
-        if not len(l):
-            l = []
-        return l
-
-
-class SelectQuery(Query):
-
-    _from = None
-    join = []
-
-    def __init__(self, _from, factory, ctnum):
-        """
-
-        @type _from: schematics.models.Model
-        @type factory: Select
-        @rtype:
-        """
-        self._from = _from
-        self.factory = factory
-        self.tnum = 1
-        self.ctnum = ctnum
-
-
-
-    def Join(self, on, join="JOIN"):
-        j = self.factory.join(on, join)
-        j.ctnum = ""
-        j._groupby = []
-        self.join.append(j)
-
-        return j
-
-    def LeftJoin(self, on):
-        return self.Join(on, "LEFT JOIN")
-
-    def RightJoin(self, on):
-        return self.Join(on, "RIGHT JOIN")
-
-    def InnerJoin(self, on):
-        return self.Join(on, "INNER JOIN")
-
-    def build(self):
-        return "%s%s%s%s%s" % (
-            self.buildBegin(),
-            self.buildFields(),
-            self.buildFrom(),
-            self.buildJoin(),
-            self.buildGroupBys()
-        )
-
-    def buildBegin(self):
-        return "SELECT "
-
-    def buildFields(self):
-        return "*\n"
-
-    def _get_tnum(self):
-        tnum = self.tnum
-        self.tnum += 1
-        ctnum = "t%s" % str(tnum)
-        return ctnum
-
-    def buildFrom(self):
-        return "FROM %s %s" % (self._from.table, self._add_tnum(self._get_tnum()))
-
-    def _buildJoin(self, j):
-        return j.build(self.ctnum, self._from.primary, self._get_tnum())
-
-    def buildJoin(self):
-        joins = [self._buildJoin(j) for j in self.join]
-        joins = "".join(joins)
-        return joins
-
-    def buildGroupBys(self):
-
-        l = self._collect_groupbys()
-        for j in self.join:
-            l.extend(j._collect_groupbys())
-
-        if len(l):
-            return "\nGROUP BY %s" % ", ".join(l)
-        else: return ""
-
-class JoinQuery(Query):
-
-
-    def __init__(self, on, join):
-        self.on = on
-        self._and = []
-        self.join = join
-
-
-    def And(self, arg):
-
-        self._and.append(arg)
-
-        return self
-
-    def build(self, table, pkey, tnum):
-        self.ctnum = tnum
-        table_id = "%s.%s" % (table, pkey)
-        first = self.on
-        join = "\n%s %s %s \n\tON %s = %s.%s" % (self.join, first.table, self._add_tnum(tnum), table_id, tnum, first.primary)
-        _and = ["\n\tAND %s.%s" % (tnum, i) for i in self._and]
-        return "%s%s" % (join, "".join(_and))
-
-
-
-class OrderQuery(object):
+class InvertedIndex(Model):
     pass
 
-
-class _Select(object):
-
-
-    def __init__(self, select, join):
-        self.select = select
-        self.join = join
+class TagIndex(InvertedIndex):
+    table = "tag_index"
+    tag_id = IntType()
+    product_id = IntType()
 
 
-    def __call__(self, name):
-        s = self.select(name, self, "t1")
-        s._groupby = []
-        return s
+class Product(TagList):
+    table = "product"
+    primary = "product_id"
+    models = ['Product', 'TagList']
+    product_id = IntType()
+    name = StringType()
 
-Select = _Select(SelectQuery, JoinQuery)
+class SelectQuery(object):
+
+
+
+    def __init__(self,
+                 ob,
+                 where_join,
+                 table_number = 2,
+                 where_set = False,
+                 _set_where = False,
+                 table_number_where="t1"):
+        self.ob = ob()
+        self.where_join = where_join
+        self.table_number = table_number
+        self.where_set = where_set
+        self._set_where = _set_where
+        self.table_number_where = table_number_where
+
+    def _add_where_join(self, add):
+        latest = self.where_join.pop()
+        latest.append(add)
+        self.where_join.append(latest)
+
+    def Where(self, str):
+        if not self.where_set:
+            self.where_join.append([])
+            self.where_set = True
+            self._add_where_join(str)
+        else:
+            raise Exception("Where can only be set once")
+        return self
+
+    def And(self, str):
+        if not len(self.where_join):
+            raise Exception("You must set a Join or Where before using And!")
+        self._add_where_join(str)
+        return self
+
+    def Join(self, str):
+        self.where_join.append([])
+        self._add_where_join(str())
+        return self
+
+    def _build_select(self):
+        return "SELECT"
+
+    def _build_fields(self):
+        return " * "
+
+    def _build_from(self):
+        return "\nFROM %s" % self.ob.table
+
+    def _reset_table_number(self):
+        self.table_number = 2
+
+    def _get_table_number(self):
+        table_number = self.table_number
+        self.table_number += 1
+        ctable_number = "t%s" % str(table_number)
+        return ctable_number
+
+    def _build_join(self, join):
+        table_number = self._get_table_number()
+
+        ob = join.pop(0)
+
+        if isinstance(ob, InvertedIndex):
+            ob_primary = self.ob.primary
+        else: ob_primary = ob.primary
+
+
+        join_str = "\nJOIN %s as %s\n\tON %s.%s =  %s.%s" % (
+            ob.table,
+            table_number,
+            self.table_number_where,
+            self.ob.primary,
+            table_number,
+            ob_primary
+        )
+
+        ands = []
+
+        if len(join):
+            ands = ["\n\tAND %s.%s" % (table_number, _and) for _and in join]
+
+        return "%s%s" % (join_str, "".join(ands))
+        
+    def _build_joins(self):
+
+        if self.where_set:
+            self._set_where = self.where_join.pop()
+
+
+        if len(self.where_join):
+            joins = [self._build_join(j) for j in self.where_join]
+            return "\n%s" % "".join(joins)
+        else: return ""
+
+    def _build_and(self, where):
+        _and = "%s.%s" % (self.table_number_where, where)
+        return _and
+
+    def _build_where(self):
+        if not self.where_set:
+            return ""
+        else:
+            wheres = [ self._build_and(where) for where in self._set_where]
+        return "\nWHERE %s" % "\n\tAND ".join(wheres)
+
+    def __str__(self):
+        return "%s%s%s%s%s" % (
+            self._build_select(),
+            self._build_fields(),
+            self._build_from(),
+            self._build_joins(),
+            self._build_where()
+        )
+
+def Query(ob):
+    return SelectQuery(ob, [])
+
+select = Query(Tag)
+select.Join(TagIndex)
+select.Join(Product).And("tag_id = :tag_id")
+select.Where("tag_id = :tag_id").And("tag_name = :tag_name")
+
+print select
+
+select = Query(Tag).Join(TagIndex).Join(TagIndex).And("tag_id = :tag_id").Where("tag_id = :tag_id").And("tag_name = :tag_name")
+print select.where_join
+print select

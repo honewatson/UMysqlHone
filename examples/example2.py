@@ -54,9 +54,9 @@ from umysqlhone.select import  Select
 
 select = Select(Blog()).GroupBy("name")
 
-select.Join(BlogDateTime()).And("published > @start_date")
-select.Join(BlogDateTime()).And("published < @end_date")
-select.LeftJoin(BlogTag()).And("tag = @tag").GroupBy("tag")
+select.Join(BlogDateTime()).And("published > :start_date")
+select.Join(BlogDateTime()).And("published < :end_date")
+select.LeftJoin(BlogTag()).And("tag = :tag").GroupBy("tag")
 
 print select.join[0].on.table
 print select.join[1].on.table
