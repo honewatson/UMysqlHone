@@ -4,14 +4,14 @@ factory = Factory({ "db_host": "localhost", "db_port": 3306, "db_user": "root", 
 
 select = factory.build("Select")
 
-#q = Query("products", "SELECT * FROM catalog_product_entity WHERE entity_id > @entity_id LIMIT @limit;")
+#q = Query("products", "SELECT * FROM catalog_product_entity WHERE entity_id > :entity_id LIMIT :limit;")
 
 #results = db.query(q, {"entity_id": 5, "limit": 5})
 
 cnn = select.get_connection()
 
-q1 = Query("asl", "INSERT INTO asl (post_title, post_name) VALUES (@post_title, @post_name) ON DUPLICATE KEY UPDATE post_id = LAST_INSERT_ID(post_id), post_title = VALUES(post_title);")
-q2 = Query("asls", "INSERT INTO asls (post_title, post_name) VALUES (@post_title, @post_name) ON DUPLICATE KEY UPDATE post_id = LAST_INSERT_ID(post_id), post_title = VALUES(post_title);")
+q1 = Query("asl", "INSERT INTO asl (post_title, post_name) VALUES (:post_title, :post_name) ON DUPLICATE KEY UPDATE post_id = LAST_INSERT_ID(post_id), post_title = VALUES(post_title);")
+q2 = Query("asls", "INSERT INTO asls (post_title, post_name) VALUES (:post_title, :post_name) ON DUPLICATE KEY UPDATE post_id = LAST_INSERT_ID(post_id), post_title = VALUES(post_title);")
 
 insert = factory.insert()
 
@@ -22,9 +22,9 @@ insert = factory.insert()
 # print stm1.prepare
 # print stm1.execute
 # print stm1.params
-# sql = "SET @post_name = 'dblue'; SET @post_title = 'dBlue'; %s %s" % (stm1.execute, stm2.execute)
-# cnn.query("SET @post_title = 'Blue';")
-# cnn.query("SET @post_name = 'blue';")
+# sql = "SET :post_name = 'dblue'; SET :post_title = 'dBlue'; %s %s" % (stm1.execute, stm2.execute)
+# cnn.query("SET :post_title = 'Blue';")
+# cnn.query("SET :post_name = 'blue';")
 #cnn.query(stm1.execute)
 # cnn.query(stm2.execute)
 params = {"post_name": "Blue", "post_title": "Red"}
@@ -63,25 +63,25 @@ results = select.query("SELECT * FROM asl;", params, Post)
 for row in results:
     print row.to_primitive()
 
-results = select.query("SELECT * FROM asl where post_name = @post_name AND post_title = @post_title;", params)
+results = select.query("SELECT * FROM asl where post_name = :post_name AND post_title = :post_title;", params)
 
 for row in results:
     print row
 
-results = select.query("SELECT * FROM asl where post_id = @post_id;", {"post_id": 2})
+results = select.query("SELECT * FROM asl where post_id = :post_id;", {"post_id": 2})
 
 for row in results:
     print row
 
 exe = factory.build('Execute')
 
-print exe.query("UPDATE asl SET post_name = @post_name WHERE post_id = @post_id", {"post_id": 16, "post_name": "aparadise"})
+print exe.query("UPDATE asl SET post_name = :post_name WHERE post_id = :post_id", {"post_id": 16, "post_name": "aparadise"})
 
 print exe.query("CREATE TABLE IF NOT EXISTS asl1 LIKE asl;")
 
 #print exe.query("")
-#print exe.query("DELETE FROM asl where post_title LIKE @post_title", {"post_title": "%red%"})
-#print exe.query("DELETE FROM asl where post_name = @post_name", params)
+#print exe.query("DELETE FROM asl where post_title LIKE :post_title", {"post_title": "%red%"})
+#print exe.query("DELETE FROM asl where post_name = :post_name", params)
 
 results = select.query("SELECT * FROM asl;", params, Post)
 

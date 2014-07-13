@@ -50,6 +50,7 @@ class Repository(object):
         @rtype = Stm
         """
         tokens = self._match.findall(query.sql)
+        tokens = [token.replace(":", "@") for token in tokens]
         if len(tokens):
             _execute = "EXECUTE %s USING %s;" % (query.key, ", ".join(tokens))
         else:
@@ -247,7 +248,7 @@ class Factory(object):
         "Execute": Execute
     }
 
-    compile = re.compile("@[a-zA-Z0-9_]+")
+    compile = re.compile(":[a-zA-Z0-9_]+")
 
     def __init__(self, config):
         """
