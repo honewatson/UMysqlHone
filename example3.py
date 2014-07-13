@@ -78,11 +78,13 @@ def get_all_fields(ob):
 
 #print_ob()
 
-print_ob(p1.name)
+#print_ob(p1.name)
 
 #print getattr(p1.name, "__class__")
 
 #print p1.name.__class__.__name__
+
+print p1.tags
 
 class Tables(object):
 
