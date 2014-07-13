@@ -7,10 +7,6 @@ class Query(object):
         self.key = key
         self.sql = sql
 
-class Qfactory(object):
-    def get(self, sql):
-        return Query("A%s" % str(sql.__hash__()).strip("-"), sql)
-
 class StmCache(dict):
     pass
 
@@ -25,6 +21,14 @@ class Stm(object):
         self.params = params
         self.execute = execute
         self.prepare = prepare
+
+class Qfactory(object):
+
+    def query(self, sql):
+        return Query("A%s" % str(sql.__hash__()).strip("-"), sql)
+
+    def stm(self, _tokens, _execute, _prepare):
+        return Stm(_tokens, _execute, _prepare)
 
 class Repository(object):
 
@@ -53,12 +57,15 @@ class Repository(object):
         tokens = [token.replace(":", "@") for token in tokens]
         if len(tokens):
             _execute = "EXECUTE %s USING %s;" % (query.key, ", ".join(tokens))
+
         else:
             _execute = "EXECUTE %s;" % (query.key)
-        return Stm(
+        _prepare = "PREPARE %s FROM '%s';" % (query.key, self._match.sub("?", query.sql).replace("'", "\\'"))
+
+        return self.qfactory.stm(
             tokens,
             _execute,
-            "PREPARE %s FROM '%s';" % (query.key, self._match.sub("?", query.sql))
+            _prepare
         )
 
     def prepare(self, query):
@@ -68,7 +75,7 @@ class Repository(object):
         @rtype: Stm
         """
         if isinstance(query, basestring):
-            query = self.qfactory.get(query)
+            query = self.qfactory.query(query)
         if not self._stmcache.get(query.key, ""):
             self._stmcache[query.key] = stm = self._stm_builder(query)
             self.try_query(stm.prepare)
@@ -146,6 +153,7 @@ class Repository(object):
         """
         self.connect()
         stm = self.prepare(query)
+
         self.set_params(params, stm)
         return self.try_query(stm.execute)
 
