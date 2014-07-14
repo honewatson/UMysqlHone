@@ -1,163 +1,188 @@
 __author__ = 'hone'
 
-class Entity(object):
-
-    def __init__(self, _dict = {}, **kwargs):
-        if _dict != {} and  kwargs != {}:
-            raise Exception("You should only include either named parameters or one dictionary")
-        if _dict != {}:
-            self._vars =_dict
-        elif kwargs != {}:
-            self._vars = kwargs
-        self.set_defaults()
-
-    def __getattr__(self, name):
-        return self._vars.get( name, "")
-
-    def __set__(self, instance, value):
-        self._vars[instance] = value
-
-    def fields(self):
-        if not getattr(self, "_fields"):
-            self._attrs = self.Attrs()
-            d = dir(self._attrs)
-            d.reverse()
-            Attrsr = {}
-            for i in d:
-                if i == "__weakref__":
-                    break
-                attr = getattr(self._attrs, i, "")
-                if isinstance(attr, Attribute):
-                    Attrsr[i] = attr
-            self._fields = Attrsr
-        return self._fields
-
-    def set_defaults(self):
-        self._vars = self.to_primitive()
-
-    def _check_primitive(self, v):
-        if getattr(v, 'to_primitive', ""): return v.to_primitive()
-        else: return v
-
-    def _check_iter(self, value, attr):
-        if isinstance(value, list):
-            return [self._check_primitive(m) for m in value]
-        elif isinstance(value, dict):
-            return {k: self._check_primitive(v) for k, v in value.items()  }
-        elif isinstance(value, Entity):
-            return value.to_primitive()
-        else: return value
-
-    def _get_var(self, k, v):
-        if getattr(self, k, ""): return self._check_iter(getattr(self, k, ""), v)
-        elif self._vars.get(k, ""): return self._check_iter(self._vars.get(k, "") ,v)
-        elif isinstance(v, Attribute): return v.get_var("default")
-        else: return None
-
-
-    def to_primitive(self):
-        fields  = self.fields()
-        return {
-            k: self._get_var(k, v)
-            for k, v in fields.items()
-        }
+import inspect
 
 class Attribute(object):
     def __init__(self, **kwargs):
-
-        self._vars = kwargs
+        self._params = kwargs
 
     def set(self, k, v):
-        self._vars[k] = v
+        self._params[k] = v
 
-    def vars(self):
-        return self._vars
+    def params(self):
+        return self._params
 
-    def get_var(self, k):
-        return self._vars.get(k)
+    def get(self, k, default = None):
+        return self._params.get(k, default)
 
+    def extend(self, **kwargs):
+        _params = { k:v for k,v in self._params.items()}
+        for k,v in kwargs.items():
+            _params[k] = v
+        return Attribute(**_params)
 
-IdType = Attribute(dog="Sausage")
-
-NameType = Attribute(dog="German Shepard")
-
-SlugType = Attribute(dog="Beagle")
-
-
-class Attrs(object):
+class ListAttribute(Attribute):
     pass
 
-class Post(Entity):
-    class Attrs(Attrs):
-        post_id = IdType
+class Simple(object):
+    def __init__(self, **kwargs):
+        self._params = kwargs
+        for k, v in kwargs:
+            setattr(self, k, v)
+
+
+IdType = Attribute(
+    dog="Sausage",
+    validation=['pingu'],
+    default=0,
+    public=True
+)
+
+StringType = Attribute(
+    dog="German Shepard",
+    validation=['dingu'],
+    default="",
+    public=True
+)
+
+SlugType = StringType.extend(
+    dog="Beagle",
+    validation=['wingu']
+)
+
+PrimaryType = IdType.extend(
+    cat="enrique",
+    required_on_update=True
+)
+
+
+PasswordType = StringType.extend(
+    public=False
+)
+
+YesNoType = Attribute(default=False, public=True)
+
+print SlugType.params()
+
+
+class EntityInterface(object):
+    def get_validation(self): raise NotImplementedError()
+
+    def get_all(self): raise NotImplementedError()
+
+    def get_new(self): raise NotImplementedError()
+
+    def get_schema(self): raise NotImplementedError()
+
+    def get_props(self):  raise NotImplementedError()
+
+    def build(self): raise NotImplementedError()
+
+
+class Entity(EntityInterface):
+
+    is_entity = True
+
+    def __init__(self):
+        self.props = self.get_props()
+
+    def _is_entity(self, item):
+        return getattr(item, "is_entity", False)
+
+    def get_props(self):
+        props = dir(self)
+        props.reverse()
+        _props = {}
+        for item in props:
+            _item = getattr(self, item, "")
+            if item == '__class__':
+                continue
+            elif self._is_entity(_item):
+                _props[item] = _item
+            elif isinstance(_item, Attribute):
+                _props[item] = _item
+        return _props
+
+
+    def _get_model_method(self, item, param):
+        key = "get_%s" % param
+        try:
+            return getattr(item, key)()
+        except:
+            item = item()
+            return getattr(item, key)()
+
+    def _get_item(self, item, param):
+        if isinstance(item, ListAttribute):
+            model = item.get('model')
+            return [self._get_model_method(model, param)]
+        elif self._is_entity(item):
+            return self._get_model_method(item, param)
+        else:
+            return item.get(param)
+
+    def _get_attributes_with_param(self, param):
+        return {
+            name: self._get_item(item, param)
+            for name, item in self.props.items()
+        }
+
+    def get_validation(self):
+        return self._get_attributes_with_param("validation")
+
+    def get_public(self):
+        public = self._get_attributes_with_param("public")
+        return public
+
+    def get_new(self):
+        _new = {}
+        for name, item in self.props.items():
+            default = self._get_item(item, "default")
+            if default != None:
+                _new[name] = default
+            else:
+                _new[name] = None
+        return _new
+
+    def get_default(self):
+        return self.get_new()
+
+
 
 class Tag(Entity):
-    class Attrs(Attrs):
-        tag_id = IdType
-        name = NameType
-        slug = SlugType
+    tag_id = PrimaryType
+    tag_name = StringType
 
-TagsType = Attribute(dog="Toy Poodle", model=Tag, default=[])
+class Address(Entity):
+    address_id = PrimaryType
+    animal_id = IdType
+    city = StringType
+    postcode = StringType
+
 
 class Tags(Entity):
-    class Attrs(Attrs):
-        tags = TagsType
+    tags = ListAttribute(model=Tag)
 
-class Page(Post):
-    class Attrs(Post.Attrs, Tags.Attrs):
-        name = NameType
-        slug = SlugType
-
-p1 = Post(name="Bingo")
-
-print p1.name
-
-p = Page({"name": "Bingo"})
-p.tags = [Tag(name="Tiger")]
-print p.to_primitive()
-p = Page({"name": "Bongo"})
-print p.to_primitive()
-print p.name
-
-p.name = "Roger"
-
-print p.name
-print p._vars
-
-print p.name
-
-print p.Attrs.name.vars()
-print p.Attrs.post_id.vars()
-print p.Attrs.slug.vars()
-print p.Attrs.name.vars()
-
-print p.Attrs.tags.vars()
-
-print p.fields()
-
-print p1.fields()
-
-t = Tag(tag="bongo")
-
-fields = t.fields()
-
-for k, attr in fields.items():
-    print k, attr.vars()
-
-tags = Tags(tags=[Tag(name="Tag One"), Tag(name="Tag Two")])
+class Animal(Tags):
+    animal_id = PrimaryType
+    name = StringType
+    password = PasswordType
+    debtfree = YesNoType
+    address = Address
 
 
+a = Animal()
 
-print tags.to_primitive()
-
-print p.to_primitive()
-
-p = Page({"name": "Tongo"})
-
-p.tags.append(Tag(name="Monkey"))
+print a.is_entity
 
 
-#
-# tags.tags = [Tag(name="Bongo"), Tag(name="Bingo")]
-#
-print p.to_primitive()
+print a.get_props()
+
+
+print a.get_validation()
+
+
+print a.get_public()
+print a.get_new()
+exit()
+
