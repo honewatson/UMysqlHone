@@ -9,7 +9,7 @@ class Entity(object):
             self._vars =_dict
         elif kwargs != {}:
             self._vars = kwargs
-
+        self.set_defaults()
 
     def __getattr__(self, name):
         return self._vars.get( name, "")
@@ -18,17 +18,23 @@ class Entity(object):
         self._vars[instance] = value
 
     def fields(self):
-        metac = self.Meta()
-        d = dir(metac)
-        d.reverse()
-        metar = {}
-        for i in d:
-            if i == "__weakref__":
-                break
-            attr = getattr(metac, i, "")
-            if isinstance(attr, Attribute):
-                metar[i] = attr
-        return metar
+        if not getattr(self, "_fields"):
+            self._attrs = self.Attrs()
+            d = dir(self._attrs)
+            d.reverse()
+            Attrsr = {}
+            for i in d:
+                if i == "__weakref__":
+                    break
+                attr = getattr(self._attrs, i, "")
+                if isinstance(attr, Attribute):
+                    Attrsr[i] = attr
+            self._fields = Attrsr
+        return self._fields
+
+    def set_defaults(self):
+        #TODO set defaults
+        pass
 
     def _check_iter(self, value, attr):
         if isinstance(value, list):
@@ -42,7 +48,7 @@ class Entity(object):
     def _get_var(self, k, v):
         if getattr(self, k, ""): return self._check_iter(getattr(self, k, ""), v)
         elif self._vars.get(k, ""): return self._check_iter(self._vars.get(k, "") ,v)
-        elif getattr(v, "default", ""): return getattr(v, "default", "")
+        elif isinstance(v, Attribute): return v.get_var("default")
         else: return None
 
 
@@ -67,30 +73,41 @@ class Attribute(object):
     def get_var(self, k):
         return self._vars.get(k)
 
-class MainMeta(object):
-    pass
 
 IdType = Attribute(dog="Sausage")
+
 NameType = Attribute(dog="German Shepard")
 
 SlugType = Attribute(dog="Beagle")
 
+
+class Attrs(object):
+    pass
+
 class Post(Entity):
-    class Meta(MainMeta):
+    class Attrs(Attrs):
         post_id = IdType
 
 class Tag(Entity):
-    class Meta(MainMeta):
+    class Attrs(Attrs):
         tag_id = IdType
         name = NameType
         slug = SlugType
 
+
+
+
+
+TagsType = Attribute(dog="Toy Poodle", model=Tag, default=[])
+
+
+
 class Tags(Entity):
-    class Meta(MainMeta):
-        tags = Attribute(dog="Toy Poodle", model=Tag, default=[])
+    class Attrs(Attrs):
+        tags = TagsType
 
 class Page(Post):
-    class Meta(Post.Meta, Tags.Meta):
+    class Attrs(Post.Attrs, Tags.Attrs):
         name = NameType
         slug = SlugType
 
@@ -112,12 +129,12 @@ print p._vars
 
 print p.name
 
-print p.Meta.name.vars()
-print p.Meta.post_id.vars()
-print p.Meta.slug.vars()
-print p.Meta.name.vars()
+print p.Attrs.name.vars()
+print p.Attrs.post_id.vars()
+print p.Attrs.slug.vars()
+print p.Attrs.name.vars()
 
-print p.Meta.tags.vars()
+print p.Attrs.tags.vars()
 
 print p.fields()
 
@@ -137,6 +154,8 @@ tags = Tags(tags=[Tag(name="Tag One"), Tag(name="Tag Two")])
 print tags.to_primitive()
 
 print p.to_primitive()
+
+
 #
 # tags.tags = [Tag(name="Bongo"), Tag(name="Bingo")]
 #
