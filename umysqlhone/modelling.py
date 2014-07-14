@@ -33,14 +33,17 @@ class Entity(object):
         return self._fields
 
     def set_defaults(self):
-        #TODO set defaults
-        pass
+        self._vars = self.to_primitive()
+
+    def _check_primitive(self, v):
+        if getattr(v, 'to_primitive', ""): return v.to_primitive()
+        else: return v
 
     def _check_iter(self, value, attr):
         if isinstance(value, list):
-            return [m.to_primitive() for m in value]
+            return [self._check_primitive(m) for m in value]
         elif isinstance(value, dict):
-            return {k: v.to_primitive() for k, v in value.items()}
+            return {k: self._check_primitive(v) for k, v in value.items()  }
         elif isinstance(value, Entity):
             return value.to_primitive()
         else: return value
@@ -94,13 +97,7 @@ class Tag(Entity):
         name = NameType
         slug = SlugType
 
-
-
-
-
 TagsType = Attribute(dog="Toy Poodle", model=Tag, default=[])
-
-
 
 class Tags(Entity):
     class Attrs(Attrs):
@@ -155,8 +152,12 @@ print tags.to_primitive()
 
 print p.to_primitive()
 
+p = Page({"name": "Tongo"})
+
+p.tags.append(Tag(name="Monkey"))
+
 
 #
 # tags.tags = [Tag(name="Bongo"), Tag(name="Bingo")]
 #
-# print tags.to_primitive()
+print p.to_primitive()
