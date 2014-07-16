@@ -50,12 +50,16 @@ def class_properties(ob, callback = lambda ob, property: True):
 def  schema(ob, callback):
     def attribute(property, ob):
         if isinstance(getattr(ob, property), Attribute):
-            return type(ob).__name__
+            return type(getattr(ob, property))
     def model(property, ob):
         return schema(getattr(ob, property), callback)
-    return {
+    attributes = {
         property: attribute(property, ob) or model(property, ob)
         for property in class_properties(ob, callback)
+    }
+    return {
+        "attributes": attributes,
+        "entity": type(ob).__name__
     }
 
 
