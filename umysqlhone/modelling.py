@@ -1,4 +1,11 @@
+class PageModel(object):
+    pass
+
+
 class Attribute(object):
+    pass
+
+class IntAttr(Attribute):
     pass
 
 class StringAttr(Attribute):
@@ -6,6 +13,34 @@ class StringAttr(Attribute):
 
 class Model(object):
     pass
+
+class InvertedIndex(object):
+    pass
+
+class Tag(object):
+    tag_id = IntAttr()
+    name = StringAttr()
+    
+class BlogModel(Model):
+    name = StringAttr()
+    tags = InvertedIndex(Tag())
+    pass
+
+class Menu(Model):
+    pass
+
+class Footer(Model):
+    pass
+
+class Tags(Model):
+    pass
+
+class Blog(PageModel):
+    main = BlogModel()
+    menu = Menu()
+    footer = Footer()
+
+#/blog/tags/games/21/ = Blog.main.tags where tag_id = 21
 
 class Book(Model):
     name = StringAttr()
