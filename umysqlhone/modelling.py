@@ -14,16 +14,20 @@ class StringAttr(Attribute):
 class Model(object):
     pass
 
-class InvertedIndex(object):
+class InvertedIndex(Model):
     pass
 
-class Tag(object):
+
+class Tag(Model):
     tag_id = IntAttr()
     name = StringAttr()
+
+class Tags(InvertedIndex):
+    model = Tag()
     
 class BlogModel(Model):
     name = StringAttr()
-    tags = InvertedIndex(Tag())
+    tags = Tags()
     pass
 
 class Menu(Model):
@@ -32,8 +36,6 @@ class Menu(Model):
 class Footer(Model):
     pass
 
-class Tags(Model):
-    pass
 
 class Blog(PageModel):
     main = BlogModel()
@@ -44,6 +46,12 @@ class Blog(PageModel):
 
 class Book(Model):
     name = StringAttr()
+
+b = Book()
+b.name = "Spring"
+
+print b.name
+print b.__class__.name
 
 class BookShelf(Model):
     other = "monkey"
@@ -63,7 +71,7 @@ a = Attribute.__dict__.keys()
 #print a
 
 s = StringAttr.__dict__.keys()
-print s
+# print s
 
 #print s
 
@@ -83,15 +91,19 @@ def class_properties(ob, callback = lambda ob, property: True):
     ]
 
 def  schema(ob, callback):
+
     def attribute(property, ob):
         if isinstance(getattr(ob, property), Attribute):
             return type(getattr(ob, property))
+
     def model(property, ob):
         return schema(getattr(ob, property), callback)
+
     attributes = {
         property: attribute(property, ob) or model(property, ob)
         for property in class_properties(ob, callback)
     }
+
     return {
         "attributes": attributes,
         "entity": type(ob).__name__
@@ -109,6 +121,11 @@ def class_properties_cache(ob, callback = lambda ob, property: True):
         return SCHEMA_CACHE.get(name, "")
     SCHEMA_CACHE[name] = cls_properties = class_properties(ob, callback)
     return cls_properties
+
+print schema(Blog(), is_attribute_or_model)
+# print schema(BlogModel(), is_attribute_or_model)
+# print class_properties(BlogModel(), is_attribute_or_model)
+exit()
 
 bb = BookShelf()
 
