@@ -1,12 +1,12 @@
 
 class Query(object):
 
-    _select = "SELECT {fields} \n\tFROM {main} {joins} {where} {groupby} {having} {orderby} {limit}"
-    _join =  "\n\t{join type} JOIN {join} \n\tON main.{main_primary} = {join_alias}.{join_primary}"
+    _select = "SELECT {fields} \nFROM {main} {joins} {where} {groupby} {having} {orderby} {limit}"
+    _join =  "\n{join type} JOIN {join} \nON main.{main_primary} = {join_alias}.{join_primary}"
     _and = "\n\tAND {table}.{field} = :{table}{field}"
 
     def __init__(self, main, **kwargs):
-        self.main = main
+        self._main = main
         self.kwargs = kwargs
 
     def reset(self):
@@ -26,6 +26,9 @@ class Query(object):
     def joins(self):
         return ""
 
+    def where(self):
+        return ""
+
     def groupby(self):
         return ""
 
@@ -39,7 +42,7 @@ class Query(object):
         return ""
 
     def __str__(self):
-        return self._select.format(
+        return self.__class__._select.format(
             fields = self.fields(),
             main = self.main(),
             joins = self.joins(),
@@ -51,6 +54,10 @@ class Query(object):
         )
 
 
-from otbmodels import BlogModel
+#from otbmodels import BlogModel
 
-print Query(BlogModel)
+#print Query(BlogModel())
+
+def test(what):
+    print what
+

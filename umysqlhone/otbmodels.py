@@ -32,15 +32,15 @@ class Blog(PageModel):
     menu = Menu()
     footer = Footer()
 
-BlogModel = {
-    "tag_name": (InvertedIndex, Tag, "name"),
-    "author_name": (Author, "name"),
-    "blog_id": ("id")
-}
-
-query(BlogModel, blog_id = 21)
-query(BlogModel, tag_name = "Billy")
-query(BlogModel, author_name="Hone")
+# BlogModel = {
+#     "tag_name": (InvertedIndex, Tag, "name"),
+#     "author_name": (Author, "name"),
+#     "blog_id": ("id")
+# }
+#
+# query(BlogModel, blog_id = 21)
+# query(BlogModel, tag_name = "Billy")
+# query(BlogModel, author_name="Hone")
 
 #/blog/tags/games/21/ = Blog.main.tags where tag_id = 21
 
@@ -50,8 +50,8 @@ class Book(Model):
 b = Book()
 b.name = "Spring"
 
-print b.name
-print b.__class__.name
+# print b.name
+# print b.__class__.name
 
 class BookShelf(Model):
     other = "monkey"
@@ -80,20 +80,20 @@ n.monkey = "Blue"
 
 
 
-print schema(Blog(), is_attribute_or_model)
-# print schema(BlogModel(), is_attribute_or_model)
-# print class_properties(BlogModel(), is_attribute_or_model)
-exit()
-
-bb = BookShelf()
-
-print class_properties(bb)
-
-
-print class_properties(bb, is_attribute_or_model)
-
-print  schema(bb, is_attribute_or_model)
-
-room = Room()
-
-print schema(room, is_attribute_or_model)
+# print schema(Blog(), is_attribute_or_model)
+# # print schema(BlogModel(), is_attribute_or_model)
+# # print class_properties(BlogModel(), is_attribute_or_model)
+#
+#
+# bb = BookShelf()
+#
+# print class_properties(bb)
+#
+#
+# print class_properties(bb, is_attribute_or_model)
+#
+# print  schema(bb, is_attribute_or_model)
+#
+# room = Room()
+#
+# print schema(room, is_attribute_or_model)
