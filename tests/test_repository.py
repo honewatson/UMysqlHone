@@ -2,7 +2,7 @@ from unittest import TestCase
 
 __author__ = 'honhon'
 import umysql
-from umysqlhone.repository import Factory, Query, Stm
+from umysqlhone.client import Factory, Query, Stm
 
 class TestRepository(TestCase):
 
