@@ -5,13 +5,13 @@ ATTRIBUTE_REMOVES = ['__module__', '__doc__']
 from entities import Attribute, Model
 
 def class_properties(ob, callback = lambda ob, property: True):
-    l = [
+    return [
         property
         for property in ob.__class__.__dict__.keys()
         if property not in ATTRIBUTE_REMOVES and callback(ob, property)
     ]
-    l.reverse()
-    return l
+    #l.reverse()
+    #return l
 
 def schema(ob, callback):
 
@@ -51,6 +51,28 @@ def schema_cache(ob, callback = lambda ob, property: True):
         return SCHEMA_CACHE.get(name, "")
     SCHEMA_CACHE[name] = _schema = schema(ob, callback)
     return _schema
+
+_DIR = dir(object)
+
+def basic_all_properties(ob, callback):
+    _ob = dir(ob)
+    return {
+        property: getattr(ob, property)
+        for property in _ob
+        if property not in _DIR and callback(ob, property)
+    }
+
+def all_objects(cls):
+    c = [cls]
+    if cls.__bases__:
+        for x in cls.__bases__:
+            if x.__name__ not in ("Model", "object"):
+                if x.__bases__:
+                    for  y in all_objects(x):
+                        c.append(y)
+                else:
+                    c.append(x)
+    return c
 
 
 class Query(object):

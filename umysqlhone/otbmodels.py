@@ -2,6 +2,7 @@ __author__ = 'hone'
 
 from modelling import *
 from entities import *
+from collections import namedtuple
 
 class Tag(Model):
     id = PrimaryAttr()
@@ -14,13 +15,37 @@ class Author(Model):
 class Tags(InvertedIndex):
     model = Tag()
 
-class BlogModel(Model):
-    id = PrimarySmallAttr()
-    author = StringAttr()
-    name = StringAttr()
+class SmallLinks(Model):
+    title = StringAttr()
+    sub_title = StringAttr()
+    slug = StringAttr()
+    url = StringAttr()
+    image = StringAttr()
+    read_more = StringAttr()
+
+class Mello(Model):
+    mello = StringAttr()
+
+class Hello(Mello):
+    hello = StringAttr()
+
+class BlogModel(SmallLinks, Hello):
+    blog_id = PrimarySmallAttr()
+    author = Author()
     tags = Tags()
     published_date = StringAttr()
     pass
+
+#Only id selects are allowed
+
+result = {
+    "blog_id": {
+        "sql": "SELECT at_blog_id.blog_id, at_blog_id.author_name, at_blog_id.name FROM blog_model as at_blog_id WHERE at_blog_id = %s",
+        "params": ("blog_id",),
+        "ntuple": namedtuple("blog_id", "blog_id author_name name")
+    },
+
+}
 
 class Menu(Model):
     pass
