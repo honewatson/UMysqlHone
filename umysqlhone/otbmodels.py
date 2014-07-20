@@ -16,8 +16,10 @@ class Tags(InvertedIndex):
 
 class BlogModel(Model):
     id = PrimarySmallAttr()
+    author = StringAttr()
     name = StringAttr()
     tags = Tags()
+    published_date = StringAttr()
     pass
 
 class Menu(Model):
